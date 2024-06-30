@@ -3,7 +3,8 @@ use args::Args;
 
 use axum::{extract::State, routing::post, Json, Router};
 use clap::Parser;
-use serde::Deserialize;
+use reqwest::StatusCode;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use surrealdb::{
     engine::remote::ws::{Client, Ws},
@@ -12,7 +13,7 @@ use surrealdb::{
 };
 use tracing::info;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RegisterUserData {
     login: String,
     password: String,
@@ -49,9 +50,11 @@ async fn main() -> surrealdb::Result<()> {
 async fn register_no_hashing(
     State(app_state): State<Arc<AppState>>,
     Json(register_data): Json<RegisterUserData>,
-) {
-    info!("registerNoHash: {:?}", register_data);
-    info!("db: {:?}", app_state);
+) -> Result<(StatusCode, Json<Vec<RegisterUserData>>), (StatusCode, String)> {
+    match app_state.db.create("user").content(register_data).await {
+        Ok(user) => Ok((StatusCode::OK, Json(user))),
+        Err(e) => Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string())),
+    }
 }
 
 async fn setup_surrealdb(args: Args) -> Surreal<Client> {
