@@ -1,0 +1,17 @@
+# Use the official Rust image as the base image
+FROM rust:latest
+
+# Install SurrealDB
+RUN cargo install surrealdb
+
+# Set the working directory
+WORKDIR /usr/src/app
+
+# Copy the startup script into the container
+COPY scripts/surrealdb/1_start_surrealdb.sh .
+
+# Grant execution permissions to the startup script
+RUN chmod +x 1_start_surrealdb.sh
+
+# Run SurrealDB on container startup
+CMD ["./1_start_surrealdb.sh"]
