@@ -17,24 +17,48 @@ jobs:
     - name: Cache Cargo registry
       uses: actions/cache@v3
       with:
-        path: ~/.cargo/registry
-        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+        path: frontend/.cargo/registry  
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('frontend/**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.os }}-cargo-registry-
 
     - name: Cache Cargo index
       uses: actions/cache@v3
       with:
-        path: ~/.cargo/git
-        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+        path: frontend/.cargo/git  
+        key: ${{ runner.os }}-cargo-index-${{ hashFiles('frontend/**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.os }}-cargo-index-
 
     - name: Cache target directory
       uses: actions/cache@v3
       with:
-        path: target
-        key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
+        path: frontend/target  
+        key: ${{ runner.os }}-cargo-target-${{ hashFiles('frontend/**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-target-
+
+    - name: Cache Cargo registry backend
+      uses: actions/cache@v3
+      with:
+        path: backend/.cargo/registry  
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('backend/**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-registry-
+
+    - name: Cache Cargo index backend
+      uses: actions/cache@v3
+      with:
+        path: backend/.cargo/git 
+        key: ${{ runner.os }}-cargo-index-${{ hashFiles('backend/**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-index-
+
+    - name: Cache target directory backend
+      uses: actions/cache@v3
+      with:
+        path: backend/target  
+        key: ${{ runner.os }}-cargo-target-${{ hashFiles('backend/**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.os }}-cargo-target-
 
@@ -46,16 +70,28 @@ jobs:
         override: true
 
     - name: Install dependencies
-      run: rustup component add clippy rustfmt
+      run: |
+        cd frontend && rustup component add clippy rustfmt
+        cd ../backend && rustup component add clippy rustfmt
 
     - name: Check formatting
-      run: cargo fmt -- --check
+      run: |
+        cd frontend && cargo fmt -- --check
+        cd ../backend && cargo fmt -- --check
 
     - name: Run Clippy
-      run: cargo clippy -- -D warnings
+      run: |
+        cd frontend && cargo clippy -- -D warnings
+        cd ../backend && cargo clippy -- -D warnings
 
-    - name: Build project
-      run: cargo build --release
+    - name: Build frontend
+      run: cd frontend && cargo build --release
 
-    - name: Run tests
-      run: cargo test --release
+    - name: Build backend
+      run: cd backend && cargo build --release
+
+    - name: Run tests frontend
+      run: cd frontend && cargo test --release
+
+    - name: Run tests backend
+      run: cd backend && cargo test --release
