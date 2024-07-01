@@ -33,11 +33,9 @@ pub async fn login_no_hashing(
     let mut result = match app_state
         .db
         .query(sql)
-        .bind([
-            ("table", "user"),
-            ("login", &login_data.login),
-            ("password", &login_data.password),
-        ])
+        .bind(("table", "user"))
+        .bind(("login", &login_data.login))
+        .bind(("password", &login_data.password))
         .await
     {
         Ok(result) => result,
