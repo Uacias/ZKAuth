@@ -6,13 +6,13 @@ mod utils;
 use args::Args;
 use axum::{routing::post, Router};
 use clap::Parser;
-use handlers::auth::{register_no_hashing, AppState};
+use handlers::auth::{login_no_hashing, register_no_hashing, AppState};
 use std::sync::Arc;
+use surrealdb::Error;
 use tracing::info;
 use utils::setup_surrealdb::setup_surrealdb;
-
 #[tokio::main]
-async fn main() -> surrealdb::Result<()> {
+async fn main() -> Result<(), Error> {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::DEBUG)
         .init();
@@ -25,6 +25,8 @@ async fn main() -> surrealdb::Result<()> {
 
     let app = Router::new()
         .route("/register-no-hash", post(register_no_hashing))
+        .with_state(shared_state.clone())
+        .route("/login-no-hash", post(login_no_hashing))
         .with_state(shared_state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:5000").await.unwrap();
